@@ -8,7 +8,8 @@ import java.util.LinkedList;
 
 public class AlignementMultiple {
 
-	private static LinkedList<String[]> sequencesAlignes;
+	private  LinkedList<String[]> sequencesAlignes;
+	private LinkedList<String> nomSequences; 
 	private double[] pourcentageIdentite;
 	private double seuil;
 	private String[] Z;
@@ -26,35 +27,36 @@ public class AlignementMultiple {
 
 	private String executerClustal(String adresseClustal, String adresseFichier) {
 
-		String argus[] = { adresseClustal, "-i", adresseFichier };
-		String sequenceAligne = "";
-
-		Runtime runtime = Runtime.getRuntime();
-
-		try {
-			final java.lang.Process process = runtime.exec(argus);
-
-			try {
-				process.waitFor();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-
-			BufferedReader reader = new BufferedReader(new InputStreamReader(
-					process.getInputStream()));
-			String line = "";
-			try {
-				while ((line = reader.readLine()) != null) {
-
-					sequenceAligne += line + "\n";
-				}
-			} finally {
-				reader.close();
-			}
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-		}
-		return sequenceAligne;
+		//		String argus[] = { adresseClustal, "-i", adresseFichier };
+		//		String sequenceAligne = "";
+		//
+		//		Runtime runtime = Runtime.getRuntime();
+		//
+		//		try {
+		//			final java.lang.Process process = runtime.exec(argus);
+		//
+		//			try {
+		//				process.waitFor();
+		//			} catch (InterruptedException e) {
+		//				e.printStackTrace();
+		//			}
+		//
+		//			BufferedReader reader = new BufferedReader(new InputStreamReader(
+		//					process.getInputStream()));
+		//			String line = "";
+		//			try {
+		//				while ((line = reader.readLine()) != null) {
+		//
+		//					sequenceAligne += line + "\n";
+		//				}
+		//			} finally {
+		//				reader.close();
+		//			}
+		//		} catch (IOException ioe) {
+		//			ioe.printStackTrace();
+		//		}
+		//		return sequenceAligne;
+		return aligne;
 	}
 
 	private static LinkedList<String[]> getSequencesAlignes(
@@ -85,7 +87,6 @@ public class AlignementMultiple {
 			}
 			if (i == sequencesFasta.length() - 1)
 				ajout.add(j, sequence.split(" "));
-
 		}
 
 		return ajout;
@@ -227,13 +228,13 @@ public class AlignementMultiple {
 		return intrus;
 	}
 
-	public void aligner(String adresseFichierFasta, String adresseFichier) {
+	public void aligner(String adresseClustal, String adresseFichier) {
 
 		// Question 1.1
-		String alignementMultiple = executerClustal(adresseFichierFasta,
+		String alignementMultiple = executerClustal(adresseClustal,
 				adresseFichier);
 		sequencesAlignes = getSequencesAlignes(alignementMultiple);
-
+		nomSequences = getNomSequence(sequencesAlignes);
 		// Question 1.2
 		Z = calculerZ(sequencesAlignes);
 
@@ -265,15 +266,32 @@ public class AlignementMultiple {
 	public LinkedList<String[]> getFamille() {
 		return famille;
 	}
+	
+	public LinkedList<String> getNomSequence(LinkedList<String[]> Sequence){
+	       
+        LinkedList<String> listeNom = new LinkedList();
+        for(int i=0; i<Sequence.size(); i++){
+            listeNom.add(i ,"seq"+(i+1));
+        }
+        return listeNom;
+    }
+	
+	public void PrintAlignement(){
+		System.out.println("SEUIL:" + seuil);
+		System.out.println("=============================");
+		System.out.println("Séquence concensus:");
+		System.out.println(getZ() + "\n");
+		System.out.println("Pourcentage d'identité:");
+		for(int i = 0 ; i < sequencesAlignes.size() ; i++){
+			System.out.println(nomSequences.get(i) +" : " + pourcentageIdentite[i]);
+		}
+		System.out.println("\nSéquence retenues: ");
+		System.out.println("");
+	}
 
 	// EXECUTION DU LOGICIEL
 	// =========================================================================
 	public static void main(String[] args) {
-
-		AlignementMultiple concensus = new AlignementMultiple(20);
-		// concensus.getZ();
-
-		// double seuil = concensus.getSeuil();
 
 		// Question 5
 		String adresseClustal = "/u/oriaecha/ift3295/workspace/alignement"
@@ -282,15 +300,57 @@ public class AlignementMultiple {
 		String adresseFichier = "/u/oriaecha/ift3295/workspace/alignement"
 				+ "/src/alignement/inconnus.fa";
 
-		concensus.aligner(adresseClustal, adresseFichier);
-		System.out.println("famille: " + concensus.getFamille().size());
-		System.out.println(concensus.getZ());
 
-		concensus.setSeuil(concensus.getSeuil() * 5);
+		//Affichage avec le seuil du à l'hassard
+		AlignementMultiple alignementMultiple = new AlignementMultiple(20);
+		alignementMultiple.aligner(adresseClustal, adresseFichier);
+		alignementMultiple.PrintAlignement();
 
-		concensus.aligner(adresseClustal, adresseFichier);
-		System.out.println("famille: " + concensus.getFamille().size());
-		System.out.println(concensus.getZ());
-
+		//Affichage avec 3 fois le seuil du à l'hassard
+		AlignementMultiple alignementMultiple2 = new AlignementMultiple(20);
+		alignementMultiple2.setSeuil(alignementMultiple2.getSeuil()*3.0);
+		alignementMultiple2.aligner(adresseClustal, adresseFichier);
+		alignementMultiple2.PrintAlignement();
 	}
+
+	String aligne = ">Inconnu1n\n"
+			+"-ECSIHLELIADRPLQVFHVEVKVKDINDNPPVFRGREQIIFIPESRLLNSRFPIEGAAD\n"
+			+"ADIGANALLTYTLSPSDYFSLDVEASDELSKSLWLELRKYLDREETPELHLLLT------\n"
+			+"--ATDGGKPE-------------LQGTVE-------------LLITVLDVNDNAPLFDQA\n"
+			+"VYRVHLLETTANGTLVTTLNASDADEGVNGE---VVFSFDSGISRDIQEKFKVDSSSGEI\n"
+			+"RLIDKLDYEETKSYEIQVKAVDKGSPPMSNHCKVLVKVLDVNDNAPELAVTSLYLP-IRE\n"
+			+"DAPLS---TV-IALITVSDRDSGA---NGQVTCSLMPHVPFKL-----------------\n"
+			+"----------VST--------------\n"
+			+">Inconnu2\n"
+			+"--------------------------MNDDGKVNASSEGYFILVGF----SNWPHL---E\n"
+			+"VVIFVVVLIFYLM--------------TLIGNLFIIILSYLDSHLHTPMYFFLSNLSFLD\n"
+			+"LCYTTSSIPQLLVNLWGPEKTISYAGCMIQLYFVLALGTTECVLLVVMSYDRYAAVCRPL\n"
+			+"HYTVLMHPR-----FCHLLAVASWVSGFTNSALHSSFTFWVPLCGH----RQVDHFFCEV\n"
+			+"PALLRL------------------------------SCVDTHVNELTLMITSSIFVLIPL\n"
+			+"ILILTSYGAIVRAVLRMQ-STTGLQKVFGTCGAHLMAVSLFFIPAMCIYLQPPSGNSQDQ\n"
+			+"GKFIALFYTVVTPSLNPLIYTLRNKVV\n"
+			+">Inconnu3\n"
+			+"TECSIHLEVIVDRPLQVFHVEVKVKDINDNPPIFKGSEQRIFIPENRQLDSRFPLEGAVD\n"
+			+"ADIGANSLLTYTLSPTDYFSLKVETTDELSKSLSLELRKSLDREETPELQLLLT------\n"
+			+"--ATDGGKPE-------------LEGAVR-------------LQITVLDVNDNAPVFDQA\n"
+			+"VYRAQLTESTVNGTLVTTLNATDADEGVNGE---VVFSFGNDVSPDIQEKFKVDSISGEI\n"
+			+"RVIGDLDYEKTKSYEIQVKAVDKGTPSMSNHCKVLVKVLDVNDNVPELMITSLSLP-IKE\n"
+			+"DAPLN---TV-VALIKVSDIDSGV---NGQVTCSLSPHLPFKL-----------------\n"
+			+"----------VS---------------\n"
+			+">Inconnu4\n"
+			+"AECSIHLEVIVDRPLQVFHVEVKVKDINDNPPVFKGAEQRIFIPENRQLDSRFPLEGAVD\n"
+			+"ADIGANSLLTYTLSPTDYFSLKVETTDELSKSLSLELRKSLDREETPELQLLLT------\n"
+			+"--ATDGGKPE-------------LEGTVR-------------LQITVLDVNDNAPLFDQA\n"
+			+"IYRAQLVESTVNGTLVTTLNATDADEGVNGE---VVFSFGNDVSLDIQEKFNVDSLSGEI\n"
+			+"RVIGDLDYEKTKSYEIQIKAVDKGTPSMSNHCKVLVKVLDINDNAPELSITSLSLP-IKE\n"
+			+"DTPLN---TI-IALIKVSDIDSGV---NGQVTCSLTPHVPFKL-----------------\n"
+			+"----------VS---------------\n"
+			+">Inconnu5\n"
+			+"-ECSIHLELIADRPLQVFHVEVKVKDINDNPPVFRGREQIIFIPESRLLNSRFPIEGAAD\n"
+			+"ADIGANALLTYTLSPSDYFSLDVEASDELSKSLWLELRKSLDREETPELHLLLT------\n"
+			+"--ATDGGKPE-------------LQGTVE-------------LLITVLDVNDNAPLFDQA\n"
+			+"VYRVLLLETTANGTLMTTLNASDADEGVNGE---VVFSFDSGISRDIQEKFKVDSSSGEI\n"
+			+"RLIDKLDYEETKSYEIQVKAVDKGSPPMSNHCKVLVKVLDVNDNAPELAVTSLYLP-IRE\n"
+			+"DAPLS---TV-IALITVSDRDSGA---NGQVTCSLMPHVPFKL-----------------\n"
+			+"----------VST--------------\n";
 }
