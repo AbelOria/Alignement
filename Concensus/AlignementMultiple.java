@@ -134,7 +134,7 @@ public class AlignementMultiple {
 
 		for (int i = 0; i < taille; i++) {
 			for (int j = 0; j < sequencesAlignes.size(); j++) {
-				if (z[i] == sequencesAlignes.get(j)[i]) {
+				if (z[i].equals(sequencesAlignes.get(j)[i])) {
 					pourcentages[j]++;
 				}
 			}
@@ -249,8 +249,11 @@ public class AlignementMultiple {
 
 	public String getZ() {
 		String z = "";
-		for (int i = 0; i < Z.length; i++) {
-			z += Z[i];
+		for (int i = 1; i <= Z.length; i++) {
+			z += Z[i-1];
+			if(i%60==0){
+				z+="\n";
+			}
 		}
 		return z;
 	}
@@ -277,16 +280,21 @@ public class AlignementMultiple {
     }
 	
 	public void PrintAlignement(){
-		System.out.println("SEUIL:" + seuil);
+		System.out.printf("%s %.2f\n","SEUIL:", seuil);
 		System.out.println("=============================");
 		System.out.println("Séquence concensus:");
 		System.out.println(getZ() + "\n");
 		System.out.println("Pourcentage d'identité:");
 		for(int i = 0 ; i < sequencesAlignes.size() ; i++){
-			System.out.println(nomSequences.get(i) +" : " + pourcentageIdentite[i]);
+			System.out.printf("%s %.2f \n", nomSequences.get(i) +" : ", pourcentageIdentite[i]);
 		}
 		System.out.println("\nSéquence retenues: ");
-		System.out.println("");
+		for(int i = 0 ; i < pourcentageIdentite.length ; i++){
+			if(pourcentageIdentite[i]>seuil){
+				System.out.print(nomSequences.get(i) + " ");
+			}
+		}
+		System.out.println("\n");
 	}
 
 	// EXECUTION DU LOGICIEL
