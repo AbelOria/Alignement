@@ -1,4 +1,4 @@
-package Concensus;
+package Alignement;
 
 
 import static org.junit.Assert.*;

@@ -1,10 +1,15 @@
-package Concensus;
+package Alignement;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.io.*;
+
+/**
+* @author Abel Oria Echevarria
+* @author Lionel Larifla
+*
+*/
 
 public class AlignementMultiple {
 
@@ -13,9 +18,9 @@ public class AlignementMultiple {
 	private double[] pourcentageIdentite;
 	private double seuil;
 	private String[] Z;
-	private LinkedList<String[]> intrus;
-	private LinkedList<String[]> famille;
 
+	private LinkedList<Sequence> sequencesA;
+	
 	public AlignementMultiple() {
 	}
 
@@ -27,36 +32,35 @@ public class AlignementMultiple {
 
 	private String executerClustal(String adresseClustal, String adresseFichier) {
 
-		//		String argus[] = { adresseClustal, "-i", adresseFichier };
-		//		String sequenceAligne = "";
-		//
-		//		Runtime runtime = Runtime.getRuntime();
-		//
-		//		try {
-		//			final java.lang.Process process = runtime.exec(argus);
-		//
-		//			try {
-		//				process.waitFor();
-		//			} catch (InterruptedException e) {
-		//				e.printStackTrace();
-		//			}
-		//
-		//			BufferedReader reader = new BufferedReader(new InputStreamReader(
-		//					process.getInputStream()));
-		//			String line = "";
-		//			try {
-		//				while ((line = reader.readLine()) != null) {
-		//
-		//					sequenceAligne += line + "\n";
-		//				}
-		//			} finally {
-		//				reader.close();
-		//			}
-		//		} catch (IOException ioe) {
-		//			ioe.printStackTrace();
-		//		}
-		//		return sequenceAligne;
-		return aligne;
+				String argus[] = { adresseClustal, "-i", adresseFichier };
+				String sequenceAligne = "";
+		
+				Runtime runtime = Runtime.getRuntime();
+		
+				try {
+					final java.lang.Process process = runtime.exec(argus);
+		
+					try {
+						process.waitFor();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+		
+					BufferedReader reader = new BufferedReader(new InputStreamReader(
+							process.getInputStream()));
+					String line = "";
+					try {
+						while ((line = reader.readLine()) != null) {
+		
+							sequenceAligne += line + "\n";
+						}
+					} finally {
+						reader.close();
+				}
+			} catch (IOException ioe) {
+					ioe.printStackTrace();
+				}
+		return sequenceAligne;
 	}
 
 	private static LinkedList<String[]> getSequencesAlignes(
@@ -103,7 +107,9 @@ public class AlignementMultiple {
 			for (String[] sequenceAligne : sequencesAlignes) {
 				if (frequence.containsKey(sequenceAligne[i])) {
 					int f = frequence.get(sequenceAligne[i]);
-					frequence.replace(sequenceAligne[i], f + 1);
+					//frequence.replace(sequenceAligne[i], f + 1);
+					frequence.remove(sequenceAligne[i]);
+					frequence.put(sequenceAligne[i], f + 1);
 				} else {
 					frequence.put(sequenceAligne[i], 1);
 				}
@@ -192,20 +198,6 @@ public class AlignementMultiple {
 		return ((double) matchs / symbolesEvalues) > seuil;
 	}
 
-	/**
-	 * 
-	 * @param indexFamille
-	 *            Liste de index de "sequencesAlignes" qui font partie d'une
-	 *            famille
-	 * @return Sequences appartenant a une famille
-	 */
-	private LinkedList<String[]> getFamille(int[] indexFamille) {
-		LinkedList<String[]> famille = new LinkedList<String[]>();
-		for (int i = 0; i < indexFamille.length; i++)
-			famille.add(sequencesAlignes.get(indexFamille[i]));
-		return famille;
-	}
-
 	protected LinkedList<String[]> getIntrus(
 			LinkedList<String[]> sequencesAlignes, int[] indexFamille) {
 
@@ -240,11 +232,6 @@ public class AlignementMultiple {
 
 		// Question 1.3
 		pourcentageIdentite = getPourcentageIdentite(sequencesAlignes, Z);
-
-		int indexFamille[] = getIndexFamille(sequencesAlignes, Z);
-
-		intrus = getIntrus(sequencesAlignes, indexFamille);
-		famille = getFamille(indexFamille);
 	}
 
 	public String getZ() {
@@ -266,13 +253,10 @@ public class AlignementMultiple {
 		this.seuil = nouveauSeuil;
 	}
 
-	public LinkedList<String[]> getFamille() {
-		return famille;
-	}
 	
 	public LinkedList<String> getNomSequence(LinkedList<String[]> Sequence){
 	       
-        LinkedList<String> listeNom = new LinkedList();
+        LinkedList<String> listeNom = new LinkedList<String>();
         for(int i=0; i<Sequence.size(); i++){
             listeNom.add(i ,"seq"+(i+1));
         }
@@ -286,7 +270,8 @@ public class AlignementMultiple {
 		System.out.println(getZ() + "\n");
 		System.out.println("Pourcentage d'identité:");
 		for(int i = 0 ; i < sequencesAlignes.size() ; i++){
-			System.out.printf("%s %.2f \n", nomSequences.get(i) +" : ", pourcentageIdentite[i]);
+			System.out.printf("%s %.2f \n", nomSequences.get(i) +" : ", 
+					pourcentageIdentite[i]);
 		}
 		System.out.println("\nSéquence retenues: ");
 		for(int i = 0 ; i < pourcentageIdentite.length ; i++){
@@ -301,13 +286,17 @@ public class AlignementMultiple {
 	// =========================================================================
 	public static void main(String[] args) {
 
-		// Question 5
-		String adresseClustal = "/u/oriaecha/ift3295/workspace/alignement"
-				+ "/src/alignement/clustalo-1.2.0-Ubuntu-32-bit";
-
-		String adresseFichier = "/u/oriaecha/ift3295/workspace/alignement"
-				+ "/src/alignement/inconnus.fa";
-
+		String path = System.getProperty("user.dir" );
+		
+		String adresseClustal = path+ "\\src\\clustal\\clustalo.exe";
+		
+		// Activer cette ligne pour prendre l'adresse du fichier fasta à partir 
+		// de la ligne de commande
+//		String adresseFichier = args[0];
+		
+		// Activer cette ligne pour utiliser le fichier fasta de exemple furni
+		// par l'aplication
+		String adresseFichier = path+"\\src\\Alignement\\inconnus.fa";
 
 		//Affichage avec le seuil du à l'hassard
 		AlignementMultiple alignementMultiple = new AlignementMultiple(20);
@@ -320,45 +309,4 @@ public class AlignementMultiple {
 		alignementMultiple2.aligner(adresseClustal, adresseFichier);
 		alignementMultiple2.PrintAlignement();
 	}
-
-	String aligne = ">Inconnu1n\n"
-			+"-ECSIHLELIADRPLQVFHVEVKVKDINDNPPVFRGREQIIFIPESRLLNSRFPIEGAAD\n"
-			+"ADIGANALLTYTLSPSDYFSLDVEASDELSKSLWLELRKYLDREETPELHLLLT------\n"
-			+"--ATDGGKPE-------------LQGTVE-------------LLITVLDVNDNAPLFDQA\n"
-			+"VYRVHLLETTANGTLVTTLNASDADEGVNGE---VVFSFDSGISRDIQEKFKVDSSSGEI\n"
-			+"RLIDKLDYEETKSYEIQVKAVDKGSPPMSNHCKVLVKVLDVNDNAPELAVTSLYLP-IRE\n"
-			+"DAPLS---TV-IALITVSDRDSGA---NGQVTCSLMPHVPFKL-----------------\n"
-			+"----------VST--------------\n"
-			+">Inconnu2\n"
-			+"--------------------------MNDDGKVNASSEGYFILVGF----SNWPHL---E\n"
-			+"VVIFVVVLIFYLM--------------TLIGNLFIIILSYLDSHLHTPMYFFLSNLSFLD\n"
-			+"LCYTTSSIPQLLVNLWGPEKTISYAGCMIQLYFVLALGTTECVLLVVMSYDRYAAVCRPL\n"
-			+"HYTVLMHPR-----FCHLLAVASWVSGFTNSALHSSFTFWVPLCGH----RQVDHFFCEV\n"
-			+"PALLRL------------------------------SCVDTHVNELTLMITSSIFVLIPL\n"
-			+"ILILTSYGAIVRAVLRMQ-STTGLQKVFGTCGAHLMAVSLFFIPAMCIYLQPPSGNSQDQ\n"
-			+"GKFIALFYTVVTPSLNPLIYTLRNKVV\n"
-			+">Inconnu3\n"
-			+"TECSIHLEVIVDRPLQVFHVEVKVKDINDNPPIFKGSEQRIFIPENRQLDSRFPLEGAVD\n"
-			+"ADIGANSLLTYTLSPTDYFSLKVETTDELSKSLSLELRKSLDREETPELQLLLT------\n"
-			+"--ATDGGKPE-------------LEGAVR-------------LQITVLDVNDNAPVFDQA\n"
-			+"VYRAQLTESTVNGTLVTTLNATDADEGVNGE---VVFSFGNDVSPDIQEKFKVDSISGEI\n"
-			+"RVIGDLDYEKTKSYEIQVKAVDKGTPSMSNHCKVLVKVLDVNDNVPELMITSLSLP-IKE\n"
-			+"DAPLN---TV-VALIKVSDIDSGV---NGQVTCSLSPHLPFKL-----------------\n"
-			+"----------VS---------------\n"
-			+">Inconnu4\n"
-			+"AECSIHLEVIVDRPLQVFHVEVKVKDINDNPPVFKGAEQRIFIPENRQLDSRFPLEGAVD\n"
-			+"ADIGANSLLTYTLSPTDYFSLKVETTDELSKSLSLELRKSLDREETPELQLLLT------\n"
-			+"--ATDGGKPE-------------LEGTVR-------------LQITVLDVNDNAPLFDQA\n"
-			+"IYRAQLVESTVNGTLVTTLNATDADEGVNGE---VVFSFGNDVSLDIQEKFNVDSLSGEI\n"
-			+"RVIGDLDYEKTKSYEIQIKAVDKGTPSMSNHCKVLVKVLDINDNAPELSITSLSLP-IKE\n"
-			+"DTPLN---TI-IALIKVSDIDSGV---NGQVTCSLTPHVPFKL-----------------\n"
-			+"----------VS---------------\n"
-			+">Inconnu5\n"
-			+"-ECSIHLELIADRPLQVFHVEVKVKDINDNPPVFRGREQIIFIPESRLLNSRFPIEGAAD\n"
-			+"ADIGANALLTYTLSPSDYFSLDVEASDELSKSLWLELRKSLDREETPELHLLLT------\n"
-			+"--ATDGGKPE-------------LQGTVE-------------LLITVLDVNDNAPLFDQA\n"
-			+"VYRVLLLETTANGTLMTTLNASDADEGVNGE---VVFSFDSGISRDIQEKFKVDSSSGEI\n"
-			+"RLIDKLDYEETKSYEIQVKAVDKGSPPMSNHCKVLVKVLDVNDNAPELAVTSLYLP-IRE\n"
-			+"DAPLS---TV-IALITVSDRDSGA---NGQVTCSLMPHVPFKL-----------------\n"
-			+"----------VST--------------\n";
 }
